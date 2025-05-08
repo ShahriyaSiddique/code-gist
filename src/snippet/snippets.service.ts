@@ -9,11 +9,30 @@ import { Snippets } from './entities/snippets.entity';
 @Injectable()
 export class SnippetsService {
     constructor(
-        @InjectRepository(Snippets)
-        private snippetRepository: Repository<Snippets>,
+    @InjectRepository(Snippets)
+    private snippetRepository: Repository<Snippets>,
     ) { }
 
-    async create(createSnippetDto: CreateSnippetDto, user: User): Promise<{ id: string }> {
+    async findAll(userId?: string): Promise<Snippets[]> {
+        const queryBuilder = this.snippetRepository
+            .createQueryBuilder('snippet')
+            .leftJoinAndSelect('snippet.user', 'user');
+
+        if (userId) {
+            // If user is authenticated, show their private snippets and all public snippets
+            queryBuilder.where('(snippet.isPublic = :isPublic OR snippet.user.id = :userId)', {
+                isPublic: true,
+                userId,
+            });
+        } else {
+            // If user is not authenticated, show only public snippets
+            queryBuilder.where('snippet.isPublic = :isPublic', { isPublic: true });
+        }
+
+        return queryBuilder.getMany();
+    }
+
+    async create(createSnippetDto: CreateSnippetDto, user: User): Promise<{ id: string; }> {
         const snippets = this.snippetRepository.create({
             ...createSnippetDto,
             user,
@@ -30,7 +49,7 @@ export class SnippetsService {
         if (!snippet) {
             throw new NotFoundException('Snippets not found');
         }
-        
+
         if (!snippet.isPublic && snippet.user?.id !== userId) {
             throw new ForbiddenException('You do not have access to this snippets');
         }

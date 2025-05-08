@@ -16,6 +16,11 @@ export class SnippetsController {
         return this.snippetsService.create(createSnippetDto, req.user);
     }
 
+    @Get()
+    findAll(@Request() req) {
+        return this.snippetsService.findAll(req.user?.id);
+    }
+
     @Get(':id')
     findOne(@Param('id') id: string, @Request() req) {
         return this.snippetsService.findOne(id, req.user?.id);
