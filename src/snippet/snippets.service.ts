@@ -69,7 +69,7 @@ export class SnippetsService {
 
     async update(id: string, updateSnippetDto: UpdateSnippetDto, userId: string): Promise<Snippets> {
         const snippets = await this.findOne(id, userId);
-        if (snippets.user.id !== userId) {
+        if (snippets.user.id !== userId && snippets.shares.some(share => share.sharedWith.id !== userId)) {
             throw new ForbiddenException('You can only update your own snippets');
         }
         Object.assign(snippets, updateSnippetDto);
