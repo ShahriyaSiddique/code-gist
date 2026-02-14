@@ -22,18 +22,11 @@ export class SnippetsService {
     async findAll(userId?: string): Promise<Snippets[]> {
         const queryBuilder = this.snippetRepository
             .createQueryBuilder('snippet')
-            .leftJoinAndSelect('snippet.user', 'user')
-            .leftJoinAndSelect('snippet.shares', 'shares')
-            .leftJoinAndSelect('shares.sharedWith', 'sharedWith');
+            .leftJoinAndSelect('snippet.user', 'user');
 
         if (userId) {
-            queryBuilder.where(
-                '(snippet.isPublic = :isPublic OR snippet.user.id = :userId)',
-                {
-                    isPublic: true,
-                    userId,
-                }
-            );
+            // Only snippets created by the current user (excludes public & shared-with-me)
+            queryBuilder.where('snippet.user.id = :userId', { userId });
         } else {
             queryBuilder.where('snippet.isPublic = :isPublic', { isPublic: true });
         }

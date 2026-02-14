@@ -94,10 +94,7 @@ describe('SnippetsService', () => {
       const qb = snippetRepo.createQueryBuilder();
       qb.getMany.mockResolvedValue([mockSnippet]);
       const result = await service.findAll('user-1');
-      expect(qb.where).toHaveBeenCalledWith(
-        '(snippet.isPublic = :isPublic OR snippet.user.id = :userId)',
-        { isPublic: true, userId: 'user-1' },
-      );
+      expect(qb.where).toHaveBeenCalledWith('snippet.user.id = :userId', { userId: 'user-1' });
       expect(result).toEqual([mockSnippet]);
     });
 
